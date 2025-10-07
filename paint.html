@@ -1,0 +1,341 @@
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>Pixel Art Editor</title>
+	<style type="text/css">
+		body{margin: 0 auto; padding: 0;font-family: 'Courier New';}
+
+		#container-ferramentas {
+			float:left;
+			clear:both;
+			width:960px; 
+			border:solid 1px #ccc;
+			padding:8px;margin-top:30px;
+			margin-bottom:250px;
+		}
+		
+		#container-ferramentas .label {
+			float:left;
+			clear:left;
+			margin-top:10px;
+			padding: 8px;
+			text-align:right;
+		}
+		
+		#container-ferramentas #backgroundColor,  #container-ferramentas #color {
+			float:right;
+			margin-left:10px;
+			width:80%;
+			margin-top:10px;
+		}
+
+		.menu{ 
+			list-style:none; 
+			background-color:brown;
+			padding: 10px 0px 10px;
+			margin: 0px;
+			float:left;
+			clear:both;
+			position: relative;
+		}
+
+		.menu li{
+			float:left;
+			clear: both;
+			background-color:brown;
+			padding:8px;
+			margin-left: 0px;
+			display:none;
+		}
+		
+		.menu li a{
+			text-decoration: none;
+			color: #fff;
+		}
+		
+		.menu li a:hover {
+			text-decoration: underline;
+		}
+		
+		#menu-container .label { 
+			float: left;
+			margin-left: 5px;
+			cursor: pointer;
+			width:100px;
+		}
+				
+		#menu-container {
+			width: 100%;
+			margin: 0 auto;
+			float:left;
+			clear:both;
+			color:#fff;
+			background-color:brown;
+			height:25px;
+			padding: 8px;
+		}
+		
+		.font-weight-bold{ 
+			font-weight: bold;
+		}
+	</style>
+</head>
+<body>
+
+<div id="menu-container">
+	<div style="float:left;">
+		<div class="label font-weight-bold" data-toggle="#arquivo">Arquivo</div>
+		<ul id="arquivo" class="menu">
+			<li><a href="javascript:;" id="salvarArquivoAction">Salvar</a></li>
+			<li>
+				<input type="file" id="carregarArquivo" style="display:none;" />
+				<a href="javascript:;" id="carregarArquivoAction">Carregar</a>
+			</li>
+		</ul>
+	</div>
+	<div style="float:left;">
+		<div class="label font-weight-bold" data-toggle="#info">About</div>
+		<ul id="info" class="menu">
+			<li><a href="javascript:;" id="infoContactAction">Contact</a></li>
+		</ul>
+	</div>
+</div>
+
+<h1>Pixel Art Editor (Java Script)</h1>
+
+<p>
+* Versão Prototipo <br />
+* já da pra desenhar e colorir. <br />
+* Agora você consegue salvar/carregar (Formato JSON) seu desenho aqui. (2025-01-21 at 23:29) <br /><br />
+* O que eu faço em Linguagem C/C++, Java, C# também da pra fazer em Javascript usando o mesmo conceito.<br />
+
+* Minha intenção aqui é brincar com o conceito.
+</p>
+
+<div id="root" style="width:500px; height:500px; border:solid 1px #ccc;padding:8px;float:left;"></div>
+
+<div style="color:red;float:left;clear:left;margin-top:10px;background-color:#000;padding:8px;">
+	Obs.: Para colorir, escolha uma cor de background e use o botão direito do mouse sobre a figura que você deseja colorir.
+</div>
+
+<div id="container-ferramentas">
+	<div class="label">Color:</div> <div id="color"></div>
+	<div class="label">Background Color:</div> <div id="backgroundColor"></div>
+</div>
+
+<script type="text/javascript">
+// Menu Control
+document.querySelectorAll('#menu-container .label').forEach(function(_this){
+
+	_this.addEventListener('mouseenter', function(){
+		document.querySelectorAll('#menu-container ul li').forEach(function(_this2){
+			_this2.style.display = 'none';
+		});
+		
+		document.querySelectorAll('#menu-container ' + this.dataset.toggle + ' li').forEach(function(_this2){
+			_this2.style.display = 'block';
+		});
+	});
+});
+
+document.querySelectorAll('#menu-container ul').forEach(function(_this){
+	_this.addEventListener('mouseleave', function(){
+		document.querySelectorAll('#menu-container ul li').forEach(function(_this2){
+			_this2.style.display = 'none';
+		});
+	});
+});
+
+document.querySelector('#salvarArquivoAction').addEventListener('click', function(e){
+	e.preventDefault();
+	
+	quadro.pixels = [];
+
+	for(var i = 0; i < quadro.altura; i++) {
+		for(var j = 0; j < quadro.largura; j++) {
+			quadro.pixels.push({
+				w : Number(document.querySelectorAll('#root table tr')[i].querySelectorAll('#root table tr td')[j].dataset.mapw),
+				h : Number(document.querySelectorAll('#root table tr')[i].querySelectorAll('#root table tr td')[j].dataset.maph),
+				c : document.querySelectorAll('#root table tr')[i].querySelectorAll('#root table tr td')[j].style.backgroundColor
+			});
+		}
+	}
+
+	var blob = new Blob([JSON.stringify(quadro.pixels)], {type: "application/json"});
+	var link = document.createElement('a');
+
+	link.href = window.URL.createObjectURL(blob);
+	link.download = "Desenho(pixel arte).json";
+	link.click();
+});
+
+document.querySelector('#carregarArquivoAction').addEventListener('click', function(e){
+	e.preventDefault();
+	document.querySelector('#carregarArquivo').click();
+});
+
+document.querySelector('#carregarArquivo').addEventListener('change', function(){
+	var file = this.files[0];
+	var reader = new FileReader();
+
+	reader.readAsText(file);
+
+	reader.onload = function() {
+		var pixels = JSON.parse(reader.result);
+		
+		pixels.forEach(function(pixel){
+			document.querySelectorAll('#root table tr')[pixel.h].querySelectorAll('#root table tr td')[pixel.w].style.backgroundColor = pixel.c;
+		});
+	};
+
+	reader.onerror = function() {
+		console.log(reader.error);
+	};
+});
+
+document.querySelector('#infoContactAction').addEventListener('click', function(e){
+	alert('Julio Leles - julio.necronomicon@gmail.com');
+});
+
+var largura = Number(document.querySelector('#root').style.width.replace('px', ''));
+
+const quadro = {
+	desenhar : false,
+	corPincel: '#000',
+	corPreenchimento: '#000',
+	altura   : (largura / 20 * 2),
+	largura  : (largura / 20 * 2),
+	pixels   : []
+};
+
+areaDesenho(quadro.altura, quadro.largura);
+caixaDeCores();
+
+document.querySelectorAll('#root table').forEach(function(_this){
+	_this.addEventListener('mousedown', function(e){
+		quadro.desenhar = true;
+	});
+	
+	_this.addEventListener('mouseup', function(e){
+		quadro.desenhar = false;
+	});
+});
+
+document.querySelectorAll('#root table tr td').forEach(function(_this){
+	_this.addEventListener('mousemove', function(e){
+		if(quadro.desenhar){
+			_this.style.backgroundColor = quadro.corPincel;
+		}
+	});
+});
+
+document.querySelectorAll('#root table tr td').forEach(function(_this){
+	_this.addEventListener('contextmenu', function(e){
+		e.preventDefault();	
+
+		var x = Number(this.dataset.maph);
+		var y = Number(this.dataset.mapw);
+
+		aplicarBackgroundColor(x, y, this.style.backgroundColor);		
+	});
+});
+
+[
+	{selector: '#container-ferramentas #color div', name: 'color'},
+	{selector: '#container-ferramentas #backgroundColor div', name: 'backgroundColor'}
+].forEach(function(obj){
+	document.querySelector(obj.selector).style.border = "solid 2px red";
+
+	document.querySelectorAll(obj.selector).forEach(function(_this){	
+		_this.addEventListener('click', function(){
+			document.querySelectorAll(obj.selector).forEach(function(_this){
+				_this.style.border = "solid 1px #000";
+			});
+
+			this.style.border = "solid 2px red";
+			
+			if(obj.name == 'color')
+				quadro.corPincel = this.style.backgroundColor;
+			
+			else if(obj.name == 'backgroundColor')
+				quadro.corPreenchimento = this.style.backgroundColor;
+		});
+	});
+});
+
+function areaDesenho(altura, largura){
+	var htmlTable = '<table border="1" cellspacing="0">';
+
+	for(var h = 0; h < altura; h++) {
+		var htmlTableTd = '';
+		
+		for(var w = 0; w < largura; w++){
+			htmlTableTd += '<td style="width:8px;height:10px;background-color:rgb(255, 255, 255);" data-maph='+h+' data-mapw='+w+'></td>';
+		}
+
+		htmlTable += '<tr>' + htmlTableTd + '</tr>';
+	}
+
+	htmlTable += '</table>';
+
+	document.querySelector('#root').innerHTML = htmlTable;
+
+	for(var i = 0; i < altura; i++) {
+		for(var j = 0; j < largura; j++) {
+			if(i == 0)
+				document.querySelectorAll('#root table tr')[i].querySelectorAll('#root table tr td')[j].style.backgroundColor = 'rgb(243,246,244)';
+			if(j <= 0)
+				document.querySelectorAll('#root table tr')[i].querySelectorAll('#root table tr td')[j].style.backgroundColor = 'rgb(243,246,244)';
+			if(j >= largura - 1)
+				document.querySelectorAll('#root table tr')[i].querySelectorAll('#root table tr td')[j].style.backgroundColor = 'rgb(243,246,244)';
+			if(i >= altura - 1)
+				document.querySelectorAll('#root table tr')[i].querySelectorAll('#root table tr td')[j].style.backgroundColor = 'rgb(243,246,244)';
+		}
+	}
+}
+
+function caixaDeCores(){
+	var contentHtml = '';
+	[
+		'#000000', // preto
+		'#ffffff', // branco
+		'#6fa8dc', // azul
+		'#cc0000', // vermelho
+		'#38761d', // verde
+		'#FFFF00', // amarelo
+		'#6a329f', // roxo
+		'#c90076', // rosa
+		'#ce7e00', // laranja
+		'#999999', // cinza
+		'#744700', // marrom
+		'#16537e'  // azul escuro
+	].forEach(function(cor){
+		contentHtml += '<div style="float:left;margin-left:5px;width:30px;height:30px;border:solid 1px #000;background-color:' + cor + ';"></div>';
+	});
+		
+	document.querySelector('#container-ferramentas #color').innerHTML = contentHtml;
+	document.querySelector('#container-ferramentas #backgroundColor').innerHTML = contentHtml;
+}
+
+function aplicarBackgroundColor(x, y, startColor) {
+		
+	var targetColor =  document.querySelectorAll('#root table tr')[x].querySelectorAll('#root table tr td')[y].style.backgroundColor;
+	// rgb(255, 255, 255) Branco
+	// rgb(111, 168, 220) Blue
+	// rgb(0, 0, 0)       Preto 
+	// rgb(255, 255, 255) Vermelho
+	if(x < 0 || x >= (quadro.altura - 1) || y < 0 || y >= (quadro.largura - 1) || targetColor !== startColor){
+		return;
+	}
+
+	document.querySelectorAll('#root table tr')[x].querySelectorAll('td')[y].style.backgroundColor = quadro.corPreenchimento;
+	
+	aplicarBackgroundColor(x + 1, y, startColor);
+	aplicarBackgroundColor(x - 1, y, startColor);
+	
+	aplicarBackgroundColor(x, y + 1, startColor);
+	aplicarBackgroundColor(x, y - 1, startColor);
+}
+</script>
+</body>
+</html>
